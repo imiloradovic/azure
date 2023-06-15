@@ -1,0 +1,1 @@
+New-AzResourceGroup -Name RG-Demo -Location "North Europe"
