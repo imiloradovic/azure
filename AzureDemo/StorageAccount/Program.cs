@@ -22,10 +22,10 @@ namespace StorageAccount
             string storageAccountName = config["StorageAccountName"];
 
             // get azure subscription.
-            // an exception is thrown when vs uses personal account to log in azure(igor.miloradovic@outlook.com)
-            // a workaround is to create a separate user and use it to log vs in azure (vs2022@igormiloradovicoutlook.onmicrosoft.com in this case)
-            // to the user, assign contributor role for the subscription
+            // When VS uses a personal account to log in Azure (igor.miloradovic@outlook.com), an exception is thrown 
             // https://stackoverflow.com/questions/72698461/azure-armclient-not-finding-subscriptions-for-one-of-my-accounts
+            // A workaround is to create a separate user in Azure AD, set that user to log in Azure (vs2022@igormiloradovicoutlook.onmicrosoft.com in this case)
+            // Contributor role for the subscription must be set for the user mentioned above.
             ArmClient armClient = new ArmClient(new DefaultAzureCredential());
             SubscriptionResource subscription = await armClient.GetDefaultSubscriptionAsync();
 
@@ -37,9 +37,27 @@ namespace StorageAccount
             // create storage account
             StorageAccountCollection storageAccountCollection = resourceGroup.GetStorageAccounts();
             StorageAccountCreateOrUpdateContent content = new StorageAccountCreateOrUpdateContent(new StorageSku("Standard_LRS"), StorageKind.StorageV2, AzureLocation.NorthEurope);           
-            storageAccountCollection.CreateOrUpdate(WaitUntil.Completed, "sa01mi80", content);
+            StorageAccountResource storageAccount = storageAccountCollection.CreateOrUpdate(WaitUntil.Completed, "sa01mi80", content).Value;
 
+            // create blob container
+            BlobContainerCollection blobContainerCollection = storageAccount.GetBlobService().GetBlobContainers();
+            BlobContainerData blobContainerData = new BlobContainerData();
+            blobContainerCollection.CreateOrUpdate(WaitUntil.Completed, "container01", blobContainerData);
 
+            // create fileshare
+            FileShareCollection fileShareCollection = storageAccount.GetFileService().GetFileShares();
+            FileShareData fileShareData = new FileShareData();
+            fileShareCollection.CreateOrUpdate(WaitUntil.Completed, "fileshare01", fileShareData);
+
+            // create table 
+            TableCollection tableCollection = storageAccount.GetTableService().GetTables();
+            TableData tableData = new TableData();
+            tableCollection.CreateOrUpdate(WaitUntil.Completed, "table01", tableData);
+
+            // create queue
+            StorageQueueCollection storageQueueCollection = storageAccount.GetQueueService().GetStorageQueues();
+            StorageQueueData storageQueueData = new StorageQueueData();
+            storageQueueCollection.CreateOrUpdate(WaitUntil.Completed, "queue01", storageQueueData);
         }
 
         private void CreateStorageAccount()
