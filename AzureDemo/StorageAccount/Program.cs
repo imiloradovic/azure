@@ -59,10 +59,6 @@ namespace StorageAccount
             StorageQueueData storageQueueData = new StorageQueueData();
             storageQueueCollection.CreateOrUpdate(WaitUntil.Completed, "queue01", storageQueueData);
         }
-
-        private void CreateStorageAccount()
-        {
-
-        }
+                
     }
 }
